@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1433" />
+  <meta name="description" content="ลอยกระทงออนไลน์กับแฟน — แต่งตัวคู่รัก แต่งกระทง เลือกสถานที่สุดโรแมนติก แล้วส่งลิงก์ให้แฟนมาลอยกระทงด้วยกัน" />
+  <title>ลอยกระทงออนไลน์กับแฟน 💖 Romantic Loy Krathong</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AA%B7%3C/text%3E%3C/svg%3E" />
+
+  <!-- Google Fonts: Prompt (UI) + Mali (คำอธิษฐาน) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: { 950: '#050a1f', 900: '#0a1433', 800: '#111d4a', 700: '#1b2a63' },
+            gold: { 200: '#fde9b8', 300: '#f8d58a', 400: '#f4c76b', 500: '#e5ab3e' },
+            blush: { 200: '#ffd6e0', 300: '#f9b4c6', 400: '#f48fab', 500: '#e86a8f' }
+          },
+          fontFamily: {
+            prompt: ['Prompt', 'sans-serif'],
+            mali: ['Mali', 'cursive']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- html2canvas สำหรับบันทึกรูปที่ระลึก -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="font-prompt text-white antialiased">
+  <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <div class="relative mx-auto max-w-6xl px-3 sm:px-5 pb-6">
+    <!-- ===== Header ===== -->
+    <header class="flex items-center justify-between gap-3 py-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="logo-badge" aria-hidden="true">🪷</div>
+        <div class="min-w-0">
+          <h1 class="text-base sm:text-xl font-semibold leading-tight truncate">
+            <span class="text-gold-300">ลอยกระทงออนไลน์</span><span class="text-blush-300">กับแฟน</span>
+          </h1>
+          <p class="text-[11px] sm:text-xs text-white/60 truncate">Romantic Loy Krathong · คืนวันเพ็ญเดือนสิบสอง 🌕</p>
+        </div>
+      </div>
+      <button id="musicBtn" type="button" class="music-btn" aria-pressed="false" aria-label="เปิด/ปิดเพลงบรรเลง">
+        <span id="musicIcon" class="text-lg leading-none">🔇</span>
+        <span id="musicLabel" class="hidden sm:inline">เปิดเพลง</span>
+        <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+      </button>
+    </header>
+
+    <main class="lg:grid lg:grid-cols-[1.2fr_1fr] lg:gap-6 lg:items-start">
+      <!-- ===== Scene (Canvas + SVG overlays) ===== -->
+      <section id="sceneWrap" class="scene-wrap -mx-3 sm:mx-0" aria-label="ฉากลอยกระทง">
+        <div id="scene" class="scene" data-focus="">
+          <canvas id="sceneCanvas" aria-hidden="true"></canvas>
+
+          <div id="sceneCaption" class="scene-caption">
+            <div class="caption-names">
+              <span id="capMe">เรา</span>
+              <span class="caption-heart">❤</span>
+              <span id="capPartner">แฟน</span>
+            </div>
+            <p id="capWish" class="caption-wish font-mali"></p>
+          </div>
+
+          <div id="coupleLayer" class="layer couple-layer"></div>
+
+          <div id="krathongLayer" class="layer krathong-layer">
+            <div class="krathong-glow"></div>
+            <div class="ripple"></div>
+            <div id="krathongBob" class="krathong-bob"></div>
+          </div>
+
+          <div id="sceneWatermark" class="scene-watermark"></div>
+          <div id="tapHint" class="tap-hint">แตะท้องฟ้าเพื่อจุดพลุ 🎆</div>
+        </div>
+      </section>
+
+      <!-- ===== Control Panel ===== -->
+      <section id="panel" class="mt-4 lg:mt-0">
+        <!-- Stepper -->
+        <nav id="stepper" class="creator-only glass rounded-2xl p-2 mb-3" aria-label="ขั้นตอน">
+          <ol class="grid grid-cols-5 gap-1">
+            <li><button type="button" class="step-btn" data-go="0"><span class="step-ic">💞</span><span class="step-lb">ข้อมูล</span></button></li>
+            <li><button type="button" class="step-btn" data-go="1"><span class="step-ic">👫</span><span class="step-lb">แต่งตัว</span></button></li>
+            <li><button type="button" class="step-btn" data-go="2"><span class="step-ic">🪷</span><span class="step-lb">กระทง</span></button></li>
+            <li><button type="button" class="step-btn" data-go="3"><span class="step-ic">🌕</span><span class="step-lb">สถานที่</span></button></li>
+            <li><button type="button" class="step-btn" data-go="4"><span class="step-ic">✨</span><span class="step-lb">ลอยกระทง</span></button></li>
+          </ol>
+        </nav>
+
+        <div class="glass rounded-3xl p-4 sm:p-6">
+          <!-- STEP 0: Landing & Setup -->
+          <div class="step-panel" data-step="0">
+            <div class="text-center mb-5">
+              <p class="text-gold-300 text-sm tracking-wide">✦ คืนแห่งความรัก ✦</p>
+              <h2 class="text-2xl sm:text-3xl font-semibold mt-1 leading-snug">ลอยกระทง<span class="text-blush-300">กับแฟน</span><br class="sm:hidden" /> แม้อยู่ไกลกัน 💫</h2>
+              <p class="text-white/70 text-sm mt-2">แต่งตัวคู่รัก แต่งกระทง เลือกสถานที่ แล้วส่งลิงก์ให้แฟนมาลอยไปด้วยกัน</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="field-label">ชื่อของเรา 🙋</span>
+                <input id="inMe" class="field" type="text" maxlength="24" placeholder="เช่น ต้นข้าว" autocomplete="off" />
+              </label>
+              <label class="block">
+                <span class="field-label">ชื่อแฟน 💗</span>
+                <input id="inPartner" class="field" type="text" maxlength="24" placeholder="เช่น น้ำหวาน" autocomplete="off" />
+              </label>
+            </div>
+
+            <label class="block mt-3">
+              <span class="field-label flex justify-between"><span>คำอธิษฐานคู่ 🙏</span><span id="cntWish" class="text-white/40 text-xs">0/160</span></span>
+              <textarea id="inWish" class="field font-mali" rows="2" maxlength="160" placeholder="ขอให้เรารักกันแบบนี้ไปนานๆ ทุกปีได้ลอยกระทงด้วยกัน…"></textarea>
+            </label>
+
+            <label class="block mt-3">
+              <span class="field-label flex justify-between"><span>ข้อความลับถึงแฟน 🔒</span><span id="cntSecret" class="text-white/40 text-xs">0/300</span></span>
+              <textarea id="inSecret" class="field font-mali" rows="3" maxlength="300" placeholder="ข้อความนี้จะแสดงเฉพาะตอนแฟนเปิดลิงก์เท่านั้นนะ…"></textarea>
+              <span class="text-[11px] text-white/50 mt-1 block">💌 แฟนจะเห็นข้อความนี้เมื่อเปิดลิงก์ที่คุณส่งไปเท่านั้น</span>
+            </label>
+          </div>
+
+          <!-- STEP 1: Couple Avatar Customizer -->
+          <div class="step-panel hidden" data-step="1">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="panel-title">👫 แต่งตัวคู่รัก</h2>
+              <button id="btnRandomAvatar" type="button" class="btn-mini">🎲 สุ่มลุค</button>
+            </div>
+            <div class="tabs" role="tablist">
+              <button type="button" class="tab active" data-person="0" role="tab"><span>🙋</span> <span id="tabName0">เรา</span></button>
+              <button type="button" class="tab" data-person="1" role="tab"><span>💗</span> <span id="tabName1">แฟน</span></button>
+            </div>
+
+            <div class="opt-group"><h3 class="opt-title">ทรงผม</h3><div id="optHair" class="opt-row"></div></div>
+            <div class="opt-group"><h3 class="opt-title">สีผม</h3><div id="optHairColor" class="opt-row"></div></div>
+            <div class="opt-group"><h3 class="opt-title">สีผิว</h3><div id="optSkin" class="opt-row"></div></div>
+            <div class="opt-group"><h3 class="opt-title">ชุด</h3><div id="optOutfit" class="opt-row"></div></div>
+            <div class="opt-group"><h3 class="opt-title">เครื่องประดับ</h3><div id="optAcc" class="opt-row"></div></div>
+          </div>
+
+          <!-- STEP 2: Krathong Workshop -->
+          <div class="step-panel hidden" data-step="2">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="panel-title">🪷 แต่งกระทงของเรา</h2>
+              <button id="btnRandomKt" type="button" class="btn-mini">🎲 สุ่มกระทง</button>
+            </div>
+            <div class="opt-group"><h3 class="opt-title">ฐานกระทง</h3><div id="optBase" class="opt-row"></div></div>
+            <div class="opt-group"><h3 class="opt-title">ดอกไม้ตกแต่ง</h3><div id="optFlower" class="opt-row"></div></div>
+            <div class="opt-group"><h3 class="opt-title">เทียน / ธูป</h3><div id="optCandle" class="opt-row"></div></div>
+            <div class="opt-group">
+              <label class="toggle-row">
+                <span>
+                  <span class="opt-title !mb-0 block">ป้ายชื่อคู่รักปักบนกระทง</span>
+                  <span id="labelPreview" class="text-xs text-white/55 font-mali"></span>
+                </span>
+                <input id="togLabel" type="checkbox" class="sr-only peer" />
+                <span class="switch" aria-hidden="true"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- STEP 3: Scenic Places -->
+          <div class="step-panel hidden" data-step="3">
+            <h2 class="panel-title mb-3">🌕 เลือกสถานที่ลอยกระทง</h2>
+            <div id="optPlace" class="grid grid-cols-1 gap-3"></div>
+          </div>
+
+          <!-- STEP 4: Float! -->
+          <div class="step-panel hidden" data-step="4">
+            <!-- Receiver: secret message -->
+            <div id="receiverBox" class="receiver-only mb-4">
+              <div class="secret-card">
+                <p class="text-gold-300 text-sm mb-1">💌 ข้อความลับจาก <span id="rcvFrom" class="font-semibold"></span></p>
+                <p id="rcvSecret" class="font-mali text-lg leading-relaxed whitespace-pre-line min-h-[1.5em]"></p>
+              </div>
+            </div>
+
+            <div class="text-center mb-4">
+              <p class="text-xs text-white/55">คำอธิษฐานคู่ของ <span id="finalNames" class="text-blush-300"></span></p>
+              <p id="finalWish" class="font-mali text-lg sm:text-xl text-gold-200 mt-1 leading-relaxed"></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <button id="btnLight" type="button" class="action-btn action-gold">
+                <span class="text-2xl">🕯️</span><span id="btnLightLb">จุดเทียนอธิษฐาน</span>
+              </button>
+              <button id="btnRelease" type="button" class="action-btn action-rose">
+                <span class="text-2xl">🪷</span><span id="btnReleaseLb">ปล่อยกระทงคู่</span>
+              </button>
+              <button id="btnSave" type="button" class="action-btn action-glass col-span-2">
+                <span class="text-xl">📸</span><span id="btnSaveLb">บันทึกรูปที่ระลึก (PNG)</span>
+              </button>
+            </div>
+
+            <!-- Creator: share link -->
+            <div class="creator-only share-box mt-5">
+              <h3 class="font-semibold text-gold-200">💌 ส่งกระทงนี้ให้แฟน</h3>
+              <p class="text-xs text-white/60 mt-0.5">ข้อมูลทั้งหมด (รวมข้อความลับ 🔒) ถูกเข้ารหัสไว้ในลิงก์ ไม่ต้องใช้เซิร์ฟเวอร์</p>
+              <div class="flex flex-col sm:flex-row gap-2 mt-3">
+                <input id="shareLink" class="field !py-2.5 text-xs sm:text-sm" type="text" readonly aria-label="ลิงก์สำหรับส่งให้แฟน" />
+                <button id="btnCopy" type="button" class="btn-primary whitespace-nowrap">🔗 คัดลอกลิงก์ส่งให้แฟน</button>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <button id="btnNativeShare" type="button" class="btn-mini hidden">📤 แชร์ผ่านแอป</button>
+                <button id="btnPreview" type="button" class="btn-mini">👀 ดูตัวอย่างหน้าที่แฟนจะเห็น</button>
+              </div>
+            </div>
+
+            <!-- Receiver: make your own -->
+            <div class="receiver-only mt-5 text-center">
+              <button id="btnMakeOwn" type="button" class="btn-primary">💞 แต่งกระทงส่งกลับให้ <span id="rcvBack"></span></button>
+            </div>
+          </div>
+
+          <!-- Step navigation -->
+          <div id="stepNav" class="creator-only flex items-center justify-between gap-3 mt-6">
+            <button id="btnPrev" type="button" class="btn-ghost">← ย้อนกลับ</button>
+            <button id="btnNext" type="button" class="btn-primary">ถัดไป →</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="text-center text-xs text-white/50 mt-8">
+      <p>ขอให้ทุกคำอธิษฐานของคู่รักเป็นจริง 🪷</p>
+      <p class="mt-1 tracking-wider">© 2026 PIYAPAT B.</p>
+    </footer>
+  </div>
+
+  <!-- ===== Receiver Invitation Overlay ===== -->
+  <div id="inviteOverlay" class="invite-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="inviteTitle">
+    <div class="invite-hearts" aria-hidden="true"></div>
+    <div class="invite-card">
+      <div class="invite-envelope" aria-hidden="true">💌</div>
+      <p class="text-gold-300 text-sm tracking-wide">✦ การ์ดเชิญลอยกระทง ✦</p>
+      <h2 id="inviteTitle" class="text-xl sm:text-2xl font-semibold mt-2 leading-snug"></h2>
+      <p id="inviteSub" class="text-white/70 text-sm mt-2 font-mali"></p>
+      <button id="btnOpenInvite" type="button" class="btn-primary mt-6 text-base px-8 py-3">💖 เปิดการ์ด</button>
+      <p class="text-[11px] text-white/45 mt-3">แนะนำให้เปิดเสียงเพื่อบรรยากาศที่ดีที่สุด 🎶</p>
+    </div>
+  </div>
+
+  <!-- ===== Photo Modal ===== -->
+  <div id="photoModal" class="photo-modal hidden" role="dialog" aria-modal="true" aria-label="รูปที่ระลึก">
+    <div class="photo-card glass">
+      <p class="font-semibold text-gold-200 mb-3">📸 รูปที่ระลึกของเรา</p>
+      <img id="photoImg" alt="รูปที่ระลึกลอยกระทง" class="rounded-2xl w-full max-h-[62vh] object-contain bg-midnight-950" />
+      <p class="text-[11px] text-white/50 mt-2">บนมือถือสามารถกดค้างที่รูปเพื่อบันทึกได้</p>
+      <div class="flex gap-2 justify-center mt-3">
+        <a id="photoDownload" class="btn-primary" download="loykrathong.png">⬇️ ดาวน์โหลด PNG</a>
+        <button id="photoClose" type="button" class="btn-ghost">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
