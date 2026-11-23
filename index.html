@@ -13,6 +13,7 @@
   <meta property="og:title" content="💌 ชวนมาลอยกระทงออนไลน์ด้วยกัน 🪷" />
   <meta property="og:description" content="คืนวันเพ็ญเดือนสิบสอง มาแต่งตัว แต่งกระทง และอธิษฐานไปด้วยกันนะ 🌕✨" />
   <meta property="og:image" content="https://piyapat23toon-code.github.io/loykrathong-/og-image.png" />
+  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
@@ -22,58 +23,22 @@
   <meta name="twitter:description" content="คืนวันเพ็ญเดือนสิบสอง มาแต่งตัว แต่งกระทง และอธิษฐานไปด้วยกันนะ 🌕✨" />
   <meta name="twitter:image" content="https://piyapat23toon-code.github.io/loykrathong-/og-image.png" />
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: radial-gradient(circle at 50% 30%, #142254, #050a1f 75%);
-      color: #fde9b8;
-      font-family: -apple-system, BlinkMacSystemFont, "Prompt", sans-serif;
-    }
-    .loader {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      text-align: center;
-      padding: 24px;
-      z-index: 10;
-    }
-    .loader-icon {
-      font-size: 56px;
-      animation: float 2s ease-in-out infinite;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-    .loader h1 {
-      font-size: 18px;
-      font-weight: 600;
+      background: radial-gradient(circle at 50% 25%, #182861, #050a1f 75%);
       color: #fff;
+      font-family: "Prompt", -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    .loader p {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.72);
-      max-width: 280px;
-      line-height: 1.5;
-    }
-    .open-btn {
-      margin-top: 6px;
-      padding: 12px 26px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #fde3a0, #f4c76b 45%, #f48fab);
-      color: #2a1530;
-      font-weight: 700;
-      font-size: 15px;
-      text-decoration: none;
-      box-shadow: 0 8px 24px rgba(244, 143, 171, 0.4);
-    }
+
+    /* Fullscreen Iframe for normal browsers */
     iframe {
       position: fixed;
       inset: 0;
@@ -84,14 +49,162 @@
       display: none;
       z-index: 20;
     }
+
+    /* Loading & In-App Browser Guide Screen */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      z-index: 10;
+    }
+
+    /* Top-right arrow pointing to IG/LINE "..." menu */
+    .corner-hint {
+      position: fixed;
+      top: 14px;
+      right: 18px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(244, 199, 107, 0.16);
+      border: 1px solid rgba(244, 199, 107, 0.45);
+      color: #fde9b8;
+      font-size: 13px;
+      font-weight: 500;
+      animation: bounceTop 1.6s ease-in-out infinite;
+    }
+    @keyframes bounceTop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .card {
+      width: 100%;
+      max-width: 390px;
+      padding: 28px 22px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+    .icon {
+      font-size: 58px;
+      line-height: 1;
+      margin-bottom: 12px;
+      display: inline-block;
+      animation: float 2.4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fde9b8;
+      line-height: 1.45;
+    }
+    .desc {
+      margin-top: 8px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
+    }
+    .steps {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(5, 10, 31, 0.55);
+      border: 1px solid rgba(244, 199, 107, 0.25);
+      text-align: left;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.88);
+      line-height: 1.65;
+    }
+    .steps b { color: #f4c76b; }
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 18px;
+      padding: 13px 20px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #fde3a0, #f4c76b 45%, #f48fab);
+      color: #2a1530;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(244, 143, 171, 0.4);
+    }
+    .btn-secondary {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      margin-top: 10px;
+      padding: 11px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .sub-link {
+      display: none;
+      margin-top: 14px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.55);
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
-  <div class="loader" id="loader">
-    <div class="loader-icon">🪷</div>
-    <h1>กำลังเปิดหน้าลอยกระทงออนไลน์</h1>
-    <p>หากหน้าเว็บไม่เปิดอัตโนมัติ ให้กดปุ่มด้านล่างเพื่อเข้าสู่หน้าลอยกระทงได้เลย</p>
-    <a id="directLink" class="open-btn" href="#">เข้าสู่หน้าลอยกระทง ✨</a>
+  <div id="cornerHint" class="corner-hint">
+    <span>แตะปุ่ม <b>•••</b> มุมขวาบน แล้วเลือก <b>เปิดในเบราว์เซอร์</b></span>
+    <span>↗️</span>
+  </div>
+
+  <div id="guideScreen" class="screen">
+    <div class="card">
+      <div class="icon">🪷</div>
+      <h1 id="titleText">กำลังเตรียมฉากลอยกระทง…</h1>
+      <p id="descText" class="desc">รอสักครู่นะ คืนนี้พระจันทร์เต็มดวง 🌕✨</p>
+
+      <div id="inAppSteps" class="steps">
+        <div>1. แตะปุ่ม <b>•••</b> ที่มุมขวาบนของหน้าจอ</div>
+        <div>2. เลือก <b>เปิดใน Safari</b> หรือ <b>เปิดในเบราว์เซอร์</b></div>
+        <div>เพื่อฟังเพลงบรรเลงและลอยกระทงได้เต็มหน้าจอ 💖</div>
+      </div>
+
+      <a id="openSafariBtn" class="btn-primary" href="#" style="display:none;">
+        🧭 เปิดใน Safari / เบราว์เซอร์
+      </a>
+      <button id="copyBtn" type="button" class="btn-secondary">
+        🔗 คัดลอกลิงก์ไปเปิดใน Safari
+      </button>
+      <a id="directGasLink" class="sub-link" href="#">
+        ลองเปิดหน้าเว็บโดยตรง
+      </a>
+    </div>
   </div>
 
   <iframe
@@ -104,37 +217,71 @@
     // วางลิงก์ Web App URL ล่าสุดที่ลงท้ายด้วย /exec จาก GAS ตรงนี้
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwSlH2slWD2GoSZzmc-iNei3XUeOaFAms9kLeVxYLuTYEzn5D7-sgEEtH0NLxpeRd13HQ/exec";
 
-    const targetUrl = GAS_URL + window.location.search;
-    document.getElementById("directLink").href = targetUrl;
+    const currentPublicUrl = window.location.href;
+    const targetGasUrl = GAS_URL + window.location.search;
 
     const ua = navigator.userAgent || "";
     const ref = document.referrer || "";
-
-    // ตรวจจับทั้ง User-Agent และ Referrer ของ Instagram / Facebook / LINE / TikTok
+    const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const isInApp =
       /Instagram|FBAN|FBAV|Line|BytedanceWebview|TikTok/i.test(ua) ||
       /instagram\.com|facebook\.com|line\.me|tiktok\.com/i.test(ref);
 
-    if (isInApp) {
-      window.location.href = targetUrl;
-    } else {
-      const frame = document.getElementById("appFrame");
-      let loaded = false;
+    const frame = document.getElementById("appFrame");
+    const guideScreen = document.getElementById("guideScreen");
+    const cornerHint = document.getElementById("cornerHint");
+    const titleText = document.getElementById("titleText");
+    const descText = document.getElementById("descText");
+    const inAppSteps = document.getElementById("inAppSteps");
+    const openSafariBtn = document.getElementById("openSafariBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const directGasLink = document.getElementById("directGasLink");
 
+    function showInAppGuide() {
+      cornerHint.style.display = "flex";
+      titleText.textContent = "💌 เปิดในเบราว์เซอร์เพื่อลอยกระทง";
+      descText.textContent = "แอปโซเชียลจำกัดการแสดงผลฉากแอนิเมชันและเสียงเพลง กรุณาเปิดลิงก์นี้ใน Safari หรือ Chrome🪷";
+      inAppSteps.style.display = "block";
+      openSafariBtn.style.display = "flex";
+      copyBtn.style.display = "flex";
+      directGasLink.style.display = "inline-block";
+      directGasLink.href = targetGasUrl;
+
+      if (isIOS) {
+        // ลองสั่งเปิด Safari โดยตรงผ่าน x-safari-https
+        openSafariBtn.href = currentPublicUrl.replace(/^https?:\/\//i, "x-safari-https://");
+      } else {
+        // Android: เปิดผ่าน Chrome Intent
+        const noProto = currentPublicUrl.replace(/^https?:\/\//i, "");
+        openSafariBtn.href = `intent://${noProto}#Intent;scheme=https;package=com.android.chrome;end`;
+      }
+    }
+
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(currentPublicUrl);
+        copyBtn.textContent = "✅ คัดลอกลิงก์แล้ว! นำไปวางใน Safari ได้เลย";
+      } catch (e) {
+        prompt("คัดลอกลิงก์ด้านล่างนี้ไปวางใน Safari:", currentPublicUrl);
+      }
+    });
+
+    if (isInApp) {
+      // แสดงหน้าแนะนำทันที ไม่เด้งไปจอขาวของ GAS
+      showInAppGuide();
+    } else {
+      // เบราว์เซอร์ปกติ (Safari / Chrome / Desktop) โหลดเต็มจอไร้แถบแบนเนอร์
+      let loaded = false;
       frame.onload = () => {
         loaded = true;
         frame.style.display = "block";
-        document.getElementById("loader").style.display = "none";
+        guideScreen.style.display = "none";
       };
+      frame.src = targetGasUrl;
 
-      frame.src = targetUrl;
-
-      // หากเปิดบนมือถือ/เบราว์เซอร์ที่บล็อก iframe ให้เด้งไปหน้า GAS โดยตรงหลัง 2 วินาที
       setTimeout(() => {
-        if (!loaded) {
-          window.location.href = targetUrl;
-        }
-      }, 2000);
+        if (!loaded) showInAppGuide();
+      }, 3000);
     }
   </script>
 </body>
