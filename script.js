@@ -906,7 +906,7 @@
       c.fillStyle = mw; c.beginPath();
       c.moveTo(W * 0.05, hY); c.lineTo(W * 0.52, 0); c.lineTo(W * 0.82, 0); c.lineTo(W * 0.35, hY); c.closePath(); c.fill();
       c.restore();
-      drawMoon(c, W * 0.52, H * 0.17, Math.max(16, Math.min(W, H) * 0.075));
+      drawMoon(c, W * 0.76, H * 0.17, Math.max(15, Math.min(W, H) * 0.072));
       // distant islands
       c.fillStyle = '#091a36';
       c.beginPath(); c.moveTo(0, hY); c.quadraticCurveTo(W * 0.12, hY - hY * 0.12, W * 0.28, hY); c.closePath(); c.fill();
@@ -1380,105 +1380,118 @@
     const tokens = seg ? Array.from(seg.segment(text), x => x.segment) : graphemes(text);
     const lines = [];
     let cur = '';
-    for (const tk of tokens) {
+    for (let i = 0; i < tokens.length; i++) {
+      const tk = tokens[i];
+      if (lines.length === maxLines - 1) {
+        // On the final allowed line, collect remaining text and ellipsize cleanly below
+        cur += tk;
+        continue;
+      }
       const test = cur + tk;
       if (c.measureText(test).width > maxW && cur) {
         lines.push(cur.trim());
         cur = tk.trimStart();
-        if (lines.length === maxLines - 1) {
-          // fit rest into last line
-          break;
-        }
       } else {
         cur = test;
       }
     }
     if (cur.trim()) lines.push(cur.trim());
     if (lines.length > maxLines) lines.length = maxLines;
-    // ensure last line fits maxW
-    const lastIdx = lines.length - 1;
-    if (lastIdx >= 0 && c.measureText(lines[lastIdx]).width > maxW) {
-      const gs = graphemes(lines[lastIdx]);
-      while (gs.length > 1 && c.measureText(gs.join('') + '…').width > maxW) gs.pop();
-      lines[lastIdx] = gs.join('') + '…';
+    // Ensure every line fits within maxW (especially final line or single very long word)
+    for (let i = 0; i < lines.length; i++) {
+      if (c.measureText(lines[i]).width > maxW) {
+        const gs = graphemes(lines[i]);
+        while (gs.length > 1 && c.measureText(gs.join('') + '…').width > maxW) gs.pop();
+        lines[i] = gs.join('') + '…';
+      }
     }
     return lines;
   }
 
   function drawSouvenirOverlays(canvas, cssW, cssH, watermarkText) {
+    if (!cssW || !cssH || !canvas.width || !canvas.height) return;
     const scaleX = canvas.width / cssW;
     const scaleY = canvas.height / cssH;
+    const minDim = Math.min(cssW, cssH);
     const c = canvas.getContext('2d');
     c.save();
-    c.scale(scaleX, scaleY);
+    // Reset any lingering transform (e.g. from html2canvas) to prevent double-scaling
+    c.setTransform(scaleX, 0, 0, scaleY, 0, 0);
 
-    // Subtle romantic inner frame
-    const pad = Math.max(8, Math.min(cssW, cssH) * 0.02);
-    c.strokeStyle = 'rgba(244, 199, 107, 0.28)';
+    // Subtle romantic inner frame — always completely inside all 4 edges
+    const pad = clamp(Math.round(minDim * 0.022), 7, 14);
+    const frameR = clamp(Math.round(pad * 1.4), 10, 18);
+    c.save();
+    c.strokeStyle = 'rgba(244, 199, 107, 0.32)';
     c.lineWidth = 1.25;
-    roundRectPath(c, pad, pad, cssW - pad * 2, cssH - pad * 2, 16);
+    roundRectPath(c, pad, pad, cssW - pad * 2, cssH - pad * 2, frameR);
     c.stroke();
+    c.restore();
 
-    // 1) Top Couple Name Pill (generous padding, zero Thai diacritic clipping)
+    // 1) Top Couple Name Pill (balanced proportions for mobile & desktop, zero Thai clipping)
     const me = state.me.trim() || 'เรา';
     const pa = state.partner.trim() || 'แฟน';
-    let nameFs = clamp(Math.round(cssW * 0.036), 14, 21);
-    const maxPillW = cssW - 28;
-    let wMe, wHeart, wPa, totalW;
-    while (nameFs >= 11) {
+    let nameFs = clamp(Math.round(minDim * 0.044), 12, 18);
+    const maxPillW = cssW - pad * 2 - 20;
+    let wMe = 0, wHeart = 0, wPa = 0, totalW = 0;
+    while (nameFs >= 10) {
       c.font = `600 ${nameFs}px "Prompt", sans-serif`;
       wMe = c.measureText(me).width;
       wHeart = c.measureText(' ❤ ').width;
       wPa = c.measureText(pa).width;
       totalW = wMe + wHeart + wPa;
-      if (totalW + nameFs * 2 <= maxPillW || nameFs === 11) break;
+      if (totalW + nameFs * 2.1 <= maxPillW || nameFs === 10) break;
       nameFs--;
     }
-    c.textBaseline = 'middle';
-    c.textAlign = 'left';
 
-    const pillPadX = Math.round(nameFs * 1.15);
-    const pillH = Math.round(nameFs * 2.35); // generous height for Thai top/bottom vowels!
+    const pillPadX = Math.round(nameFs * 1.1);
+    const pillH = Math.round(nameFs * 2.15); // generous vertical breathing room for Thai vowels/tones
     const pillW = Math.min(maxPillW, totalW + pillPadX * 2);
     const pillX = (cssW - pillW) / 2;
-    const pillY = pad + 10;
+    const pillY = pad + clamp(Math.round(minDim * 0.022), 7, 13);
 
     c.save();
-    c.fillStyle = 'rgba(10, 20, 51, 0.64)';
-    c.strokeStyle = 'rgba(255, 255, 255, 0.26)';
-    c.lineWidth = 1.1;
+    c.fillStyle = 'rgba(10, 20, 51, 0.66)';
+    c.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    c.lineWidth = 1.05;
     roundRectPath(c, pillX, pillY, pillW, pillH, pillH / 2);
     c.fill();
     c.stroke();
 
-    const textCenterY = pillY + pillH / 2 + 1;
-    const startX = (cssW - totalW) / 2;
-    c.shadowColor = 'rgba(0,0,0,0.45)';
+    c.textBaseline = 'middle';
+    c.textAlign = 'left';
+    const textCenterY = pillY + pillH / 2 + 0.5;
+    c.translate(cssW / 2, textCenterY);
+    if (totalW > pillW - 16) c.scale((pillW - 16) / totalW, 1);
+    const startX = -totalW / 2;
+    c.shadowColor = 'rgba(0, 0, 0, 0.45)';
     c.shadowBlur = 4;
     c.fillStyle = '#ffffff';
-    c.fillText(me, startX, textCenterY);
+    c.fillText(me, startX, 0);
     c.fillStyle = '#f48fab';
-    c.fillText(' ❤ ', startX + wMe, textCenterY);
+    c.fillText(' ❤ ', startX + wMe, 0);
     c.fillStyle = '#ffffff';
-    c.fillText(pa, startX + wMe + wHeart, textCenterY);
+    c.fillText(pa, startX + wMe + wHeart, 0);
     c.restore();
 
-    // 2) Couple Wish (multi-line Thai wrapped, zero clipping)
+    // 2) Couple Wish (multi-line Thai wrapped, proportional & non-overlapping)
     const wishText = state.wish.trim();
     if (wishText) {
-      const wishFs = clamp(Math.round(cssW * 0.033), 13, 20);
+      const wishFs = clamp(Math.round(minDim * 0.039), 11, 17);
+      const maxWishLines = cssH < 320 ? 2 : 3;
+      const maxWishW = Math.min(cssW - pad * 2 - 28, cssW * 0.86);
       c.save();
       c.font = `600 ${wishFs}px "Mali", "Prompt", sans-serif`;
       c.textAlign = 'center';
       c.textBaseline = 'middle';
       c.fillStyle = '#fde9b8';
       c.shadowColor = 'rgba(5, 10, 31, 0.92)';
-      c.shadowBlur = 10;
-      c.shadowOffsetY = 2;
+      c.shadowBlur = 9;
+      c.shadowOffsetY = 1.5;
 
-      const lines = wrapThaiText(c, `“${wishText}”`, cssW * 0.84, 3);
-      const lineH = Math.round(wishFs * 1.72); // ample room for Thai vowels/tone marks
-      let wy = pillY + pillH + Math.round(wishFs * 1.15);
+      const lines = wrapThaiText(c, `“${wishText}”`, maxWishW, maxWishLines);
+      const lineH = Math.round(wishFs * 1.68);
+      let wy = pillY + pillH + Math.round(wishFs * 1.05);
       for (const line of lines) {
         c.fillText(line, cssW / 2, wy);
         wy += lineH;
@@ -1486,27 +1499,33 @@
       c.restore();
     }
 
-    // 3) Bottom Watermark Pill (generous height, never clips bottom vowels like ู / ฎ / ญ)
-    const wmFs = clamp(Math.round(cssW * 0.023), 11, 14);
+    // 3) Bottom Watermark Pill (always inside frame, auto-fits narrow mobile screens)
+    let wmFs = clamp(Math.round(minDim * 0.027), 10, 13);
+    const wmMaxW = cssW - pad * 2 - 18;
+    let wmTextW = 0;
     c.save();
-    c.font = `500 ${wmFs}px "Prompt", sans-serif`;
+    while (wmFs >= 8.5) {
+      c.font = `500 ${wmFs}px "Prompt", sans-serif`;
+      wmTextW = c.measureText(watermarkText).width;
+      if (wmTextW + wmFs * 2.2 <= wmMaxW || wmFs <= 9) break;
+      wmFs -= 0.5;
+    }
     c.textAlign = 'center';
     c.textBaseline = 'middle';
-    const wmMaxW = cssW - 28;
-    const wmW = Math.min(wmMaxW, c.measureText(watermarkText).width + wmFs * 2.2);
-    const wmH = Math.round(wmFs * 2.4);
+    const wmW = Math.min(wmMaxW, wmTextW + wmFs * 2.2);
+    const wmH = Math.round(wmFs * 2.25);
     const wmX = (cssW - wmW) / 2;
-    const wmY = cssH - pad - wmH - 6;
+    const wmY = cssH - pad - wmH - clamp(Math.round(minDim * 0.016), 5, 9);
 
-    c.fillStyle = 'rgba(10, 20, 51, 0.72)';
-    c.strokeStyle = 'rgba(244, 199, 107, 0.34)';
+    c.fillStyle = 'rgba(10, 20, 51, 0.74)';
+    c.strokeStyle = 'rgba(244, 199, 107, 0.36)';
     c.lineWidth = 1;
     roundRectPath(c, wmX, wmY, wmW, wmH, wmH / 2);
     c.fill();
     c.stroke();
 
     c.fillStyle = '#fde9b8';
-    c.fillText(watermarkText, cssW / 2, wmY + wmH / 2 + 0.5, wmW - 18);
+    c.fillText(watermarkText, cssW / 2, wmY + wmH / 2 + 0.5, wmW - 14);
     c.restore();
 
     c.restore();
@@ -1715,29 +1734,100 @@
   /* ---- souvenir photo ---- */
   const thaiDate = () => { try { return new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { return new Date().toDateString(); } };
   const safeName = s => (String(s || '').trim().replace(/[\\/:*?"<>|\s]+/g, '-').slice(0, 20) || 'love');
-  function svgToImg(svg, w, h) {
+  function svgToImg(svg, w, h, scale = 2) {
     return new Promise((res, rej) => {
       const clone = svg.cloneNode(true);
-      clone.setAttribute('width', w); clone.setAttribute('height', h);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', Math.max(1, Math.round(w * scale)));
+      clone.setAttribute('height', Math.max(1, Math.round(h * scale)));
       const img = new Image();
-      img.onload = () => res(img); img.onerror = rej;
+      img.onload = () => res(img);
+      img.onerror = rej;
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
     });
   }
-  async function manualCapture(sr) {
-    const s = 2;
+  async function composeSceneCanvas(sr) {
+    const s = clamp(window.devicePixelRatio || 2, 2, 2.5);
     const out = document.createElement('canvas');
-    out.width = Math.round(sr.width * s); out.height = Math.round(sr.height * s);
-    const c = out.getContext('2d'); c.scale(s, s);
+    out.width = Math.max(1, Math.round(sr.width * s));
+    out.height = Math.max(1, Math.round(sr.height * s));
+    const c = out.getContext('2d');
+    c.setTransform(s, 0, 0, s, 0, 0);
+
+    // 1) Base night canvas (sky, moon, landmarks, water, lanterns, fireflies, fireworks)
+    c.fillStyle = '#070c26';
+    c.fillRect(0, 0, sr.width, sr.height);
     c.drawImage(els.sceneCanvas, 0, 0, sr.width, sr.height);
-    for (const svg of $$('svg', els.scene)) {
-      const b = svg.getBoundingClientRect(); if (!b.width) continue;
-      const layer = svg.closest('.layer'), op = layer ? parseFloat(getComputedStyle(layer).opacity) : 1;
-      const img = await svgToImg(svg, b.width, b.height);
-      c.globalAlpha = isNaN(op) ? 1 : op;
-      c.drawImage(img, b.left - sr.left, b.top - sr.top, b.width, b.height);
-      c.globalAlpha = 1;
+
+    // 2) Couple SVG layer (crisp retina rasterization at exact live position)
+    const coupleSvg = els.coupleLayer.querySelector('svg');
+    if (coupleSvg) {
+      const b = coupleSvg.getBoundingClientRect();
+      const op = parseFloat(getComputedStyle(els.coupleLayer).opacity);
+      if (b.width > 0 && b.height > 0 && op > 0.01) {
+        const img = await svgToImg(coupleSvg, b.width, b.height, s);
+        c.save();
+        c.globalAlpha = isNaN(op) ? 1 : op;
+        c.shadowColor = 'rgba(0, 0, 0, 0.42)';
+        c.shadowBlur = 12;
+        c.shadowOffsetY = 5;
+        c.drawImage(img, b.left - sr.left, b.top - sr.top, b.width, b.height);
+        c.restore();
+      }
     }
+
+    // 3) Krathong water ripple, candle glow (when lit), and Krathong SVG layer
+    const ktSvg = els.krathongBob.querySelector('svg');
+    if (ktSvg) {
+      const b = ktSvg.getBoundingClientRect();
+      const op = parseFloat(getComputedStyle(els.krathongLayer).opacity);
+      if (b.width > 0 && b.height > 0 && op > 0.01) {
+        const kx = b.left - sr.left + b.width / 2;
+        const ky = b.top - sr.top + b.height;
+
+        // Subtle water ripples beneath krathong
+        c.save();
+        c.globalAlpha = (isNaN(op) ? 1 : op) * 0.34;
+        c.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        c.lineWidth = 1.1;
+        c.beginPath();
+        c.ellipse(kx, ky - b.height * 0.14, b.width * 0.44, b.height * 0.08, 0, 0, TAU);
+        c.stroke();
+        c.globalAlpha = (isNaN(op) ? 1 : op) * 0.18;
+        c.beginPath();
+        c.ellipse(kx, ky - b.height * 0.14, b.width * 0.62, b.height * 0.12, 0, 0, TAU);
+        c.stroke();
+        c.restore();
+
+        // Warm radial glow when candle is lit
+        if (ui.lit) {
+          c.save();
+          c.globalAlpha = isNaN(op) ? 1 : op;
+          c.translate(kx, ky - b.height * 0.28);
+          c.scale(1.55, 0.72);
+          const gr = c.createRadialGradient(0, 0, 0, 0, 0, b.width * 0.58);
+          gr.addColorStop(0, 'rgba(255, 196, 110, 0.56)');
+          gr.addColorStop(0.45, 'rgba(255, 150, 80, 0.18)');
+          gr.addColorStop(1, 'rgba(255, 150, 80, 0)');
+          c.fillStyle = gr;
+          c.beginPath();
+          c.arc(0, 0, b.width * 0.58, 0, TAU);
+          c.fill();
+          c.restore();
+        }
+
+        // Crisp retina krathong SVG
+        const img = await svgToImg(ktSvg, b.width, b.height, s);
+        c.save();
+        c.globalAlpha = isNaN(op) ? 1 : op;
+        c.shadowColor = 'rgba(0, 0, 0, 0.38)';
+        c.shadowBlur = 9;
+        c.shadowOffsetY = 4;
+        c.drawImage(img, b.left - sr.left, b.top - sr.top, b.width, b.height);
+        c.restore();
+      }
+    }
+
     return out;
   }
   async function savePhoto() {
@@ -1746,23 +1836,29 @@
     const watermarkText = `🪷 ${state.me.trim() || 'เรา'} ❤ ${state.partner.trim() || 'แฟน'} · ลอยกระทง ${thaiDate()}`;
     const sr = els.scene.getBoundingClientRect();
 
-    // Hide DOM text pills so html2canvas captures clean background + SVGs,
-    // then we render crisp, never-clipped Thai text with Canvas2D on top!
+    // Hide DOM text pills during capture, then draw crisp overlays with reset transform
     els.scene.classList.add('capturing-clean');
     let out = null;
     try {
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-      if (typeof window.html2canvas === 'function') {
+      out = await composeSceneCanvas(sr);
+    } catch (e) { out = null; }
+
+    // Fallback to html2canvas if direct SVG composition is unavailable
+    if (!out && typeof window.html2canvas === 'function') {
+      try {
         out = await window.html2canvas(els.scene, {
           backgroundColor: '#070c26',
-          scale: Math.min(2.5, Math.max(2, window.devicePixelRatio || 1)),
+          width: Math.round(sr.width),
+          height: Math.round(sr.height),
+          scrollX: 0, scrollY: 0,
+          scale: clamp(window.devicePixelRatio || 2, 2, 2.5),
           logging: false, useCORS: true,
           onclone: doc => { const w = doc.getElementById('sceneWrap'); if (w) w.style.position = 'relative'; }
         });
-      }
-    } catch (e) { out = null; }
-    if (!out) { try { out = await manualCapture(sr); } catch (e) { out = null; } }
+      } catch (e) { out = null; }
+    }
     els.scene.classList.remove('capturing-clean');
 
     if (out) {
